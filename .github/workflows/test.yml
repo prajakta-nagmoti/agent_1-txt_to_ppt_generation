@@ -1,0 +1,14 @@
+name: Test Agent
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - run: npm install -g @mermaid-js/mermaid-cli
+      - run: python agent_runner.py sample_input.md
+      - run: ls -la output/ && echo 'PPTX generated successfully!'

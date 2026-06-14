@@ -5,10 +5,41 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-      - run: pip install -r requirements.txt
-      - run: npm install -g @mermaid-js/mermaid-cli
-      - run: python agent_runner.py sample_input.md
-      - run: ls -la output/ && echo 'PPTX generated successfully!'
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpango1.0-0 libpangoft2-1.0-0
+      
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Install Mermaid CLI
+        run: npm install -g @mermaid-js/mermaid-cli
+        continue-on-error: true
+      
+      - name: Create output directory
+        run: mkdir -p output
+      
+      - name: Run agent
+        run: python agent_runner.py sample_input.md
+      
+      - name: Verify PPTX output
+        run: |
+          if [ -f output/*.pptx ]; then
+            echo "✅ PPTX generated successfully!"
+            ls -lh output/
+          else
+            echo "❌ No PPTX file found in output/"
+            exit 1
+          fi

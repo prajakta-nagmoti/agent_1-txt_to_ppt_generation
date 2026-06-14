@@ -19,27 +19,47 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libpango1.0-0 libpangoft2-1.0-0
+          sudo apt-get install -y \
+            libpng-dev \
+            libfreetype6-dev \
+            libjpeg-dev \
+            zlib1g-dev \
+            libpango1.0-0 \
+            libpangoft2-1.0-0
       
       - name: Install Python dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
       
       - name: Install Mermaid CLI
         run: npm install -g @mermaid-js/mermaid-cli
         continue-on-error: true
       
       - name: Create output directory
-        run: mkdir -p output
+        run: mkdir -p output assets
       
       - name: Run agent
         run: python agent_runner.py sample_input.md
+        continue-on-error: false
       
       - name: Verify PPTX output
         run: |
-          if [ -f output/*.pptx ]; then
+          if [ $(find output -name "*.pptx" | wc -l) -gt 0 ]; then
             echo "✅ PPTX generated successfully!"
             ls -lh output/
+            find output -name "*.pptx" -type f
           else
             echo "❌ No PPTX file found in output/"
+            ls -la output/
             exit 1
           fi
+      
+      - name: Display test results
+        if: always()
+        run: |
+          echo "=== Workflow Status ==="
+          echo "Job: Test Agent"
+          echo "Status: Complete"
+          echo "Files generated:"
+          find . -name "*.pptx" -o -name "*.png" | head -20
